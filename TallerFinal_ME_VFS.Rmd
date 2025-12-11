@@ -1,0 +1,104 @@
+---
+title: "Taller Final - Métodos Estadísticos"
+author: "Valeria Florez Sarmiento"
+date: "2025-11-18"
+output: 
+  html_document:
+    theme: lumen
+---
+```{r}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+**Selección de Modelos con Variables Dummy (Taiwan Real Estate)**
+
+# 1. Librerías y Carga de Datos
+```{r}
+library(tidyverse)
+library(fst)
+library(olsrr) 
+df <- read_fst("C:/Users/valef/Desktop/TallerFinal_ME/taiwan_real_estate.fst")
+head(df)
+```
+
+# 2. Preparación de Variables Dummy
+```{r}
+# Asegurar que 'house_age_years' sea un factor (variable categórica) sin orden
+df <- df %>% 
+  mutate(house_age_years = factor(house_age_years,
+                                  levels = levels(house_age_years),
+                                  ordered = FALSE))
+
+#Niveles del factor 'house_age_years' después de la transformación
+levels(df$house_age_years)
+```
+```{r}
+# Transformación de la variable house_age_years en variables dummy
+df <- df %>%
+  mutate(
+    # La categoría "0 to 15" es la base (MAge=0, OAge=0)
+    MAge = if_else(house_age_years == "15 to 30", 1, 0),
+    OAge = if_else(house_age_years == "30 to 45", 1, 0)
+  ) %>%
+  select(-house_age_years)
+```
+
+# 3. Modelo Completo (RLM)
+```{r}
+# Modelo Nulo
+modelo_nulo <- lm(price_twd_msq~1, data = df)
+
+# price_twd_msq ~ dist_to_mrt_m + n_convenience + house_age_years
+modelo_completo <- lm(price_twd_msq ~ ., data = df)
+summary(modelo_completo)
+```
+
+# 4. Aplicación del Método de Todas las Regresiones Posibles
+```{r}
+k <- ols_step_all_possible(modelo_completo)
+result <- k$result
+result
+```
+
+# 5. Selección del Mejor Modelo por Criterio
+
+## Modelo con Máximo R-cuadrado (rsquare)
+```{r}
+max_rsquare_model <- result[which.max(result$rsquare),]
+max_rsquare_model
+```
+
+## Modelo con Máximo R-cuadrado Ajustado (adjr)
+```{r}
+max_adjr_model <- result[which.max(result$adjr),]
+max_adjr_model
+```
+
+## Modelo con Mínimo AIC (aic)
+```{r}
+min_aic_model <- result[which.min(result$aic),]
+min_aic_model
+```
+
+## Modelo con Mínimo SBIC (sbic)
+```{r}
+#Criterio de Información Bayesiano de Schwartz
+min_sbic_model <- result[which.min(result$sbic),]
+min_sbic_model
+```
+
+# 6. Visualización R-cuadrado vs AIC 
+```{r}
+ggplot(result, aes(rsquare, aic)) +
+  geom_point() +
+  labs(title = "R-cuadrado vs. AIC para Todas las Regresiones Posibles",
+       x = "R-cuadrado",
+       y = "AIC") +
+  theme_bw()
+
+# Subconjunto de Modelos con buen rendimiento (R-cuadrado > 0.50 y AIC < 2100)
+subset_models <- subset(result, rsquare > 0.50 & aic < 2100,
+                        select = n:aic)
+subset_models
+```
+
