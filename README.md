@@ -1,6 +1,6 @@
 # 📈 R Statistical Modeling: Selección de Modelos para Precios Inmobiliarios
 
-Este proyecto es un análisis de **Regresión Lineal Múltiple (RLM)** utilizando el dataset de precios de bienes raíces de Taiwán. El objetivo principal fue construir el modelo predictivo más parsimonioso y eficiente mediante el uso de criterios estadísticos avanzados.
+Este proyecto es un análisis de **Regresión Lineal Múltiple (RLM)** utilizando el dataset de precios de bienes raíces de Taiwán.
 
 El análisis completo está documentado en formato reproducible con **RMarkdown** (TallerFinal_ME_VFS.Rmd) y se encuentra disponible en formato HTML.
 
